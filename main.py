@@ -29,7 +29,6 @@ def convertir_Keyboard(message):
     # Se configura el teclado para que muetre las opciones a convertir
     board = ReplyKeyboardMarkup(row_width= 2, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Km/h a Millas/h"), KeyboardButton("mlls/h a km/h"),
         KeyboardButton("Velocidad"), KeyboardButton("Volumen"),
         KeyboardButton("Longitud"), KeyboardButton("Peso y Masa"),
         KeyboardButton("Temperatura"), KeyboardButton("Energía"),
@@ -39,18 +38,18 @@ def convertir_Keyboard(message):
     bot.register_next_step_handler(message, handle_converter)    
 # ============================================================== 
  
-    
+
+@bot.message_handler(content_types="text")    
 def handle_converter(message):
     
      # Comprobar la elección del usuario y proceder con la función correspondiente
     if message.text == "Velocidad":
         bot.send_message(message.chat.id, "Escribe los kilometros a convertir")
-        bot.register_next_step_handler(message, convert_kms)
+        bot.register_next_step_handler(message, convert_Speed)
         
     elif message.text == "Volumen":
-        bot.send_message(message.chat.id, "Elige lo que quieres convertir")
-        bot.registrer_next_Step_handler (message, convert_volume)
-           
+        # bot.send_message(message.chat.id, "Elige lo que quieres convertir")
+        bot.register_next_step_handler (message, convert_Volume_Keyboard(message))
     elif message.text == "mlls/h a km/h":
         bot.send_message(
             message.chat.id, "Envía el texto del que deseas contar caracteres"
@@ -58,9 +57,26 @@ def handle_converter(message):
         # bot.register_next_step_handler(message, count_characters) 
     
 
-def convert_kms(message):
+
+def convert_Volume_Keyboard(message):
+    # Se configura el teclado para que muetre las opciones de Volumen a convertir
+    board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
+    board.add(
+        KeyboardButton("Mililitros"),
+        KeyboardButton("Centilitro"),
+        KeyboardButton("Decilitro"),
+        KeyboardButton("Litro"),
+        KeyboardButton("Decalitro"),
+        KeyboardButton("Hectolitro"),
+        KeyboardButton("Kilolitro"),)   
+        
+    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+
+
+def convert_Speed(message):
     kms = float(message.text)
     millas = kms / 1.609
     bot.send_message(message.chat.id, f"Son {round(millas, 4)} Millas/h") 
+
 
 bot.infinity_polling()
