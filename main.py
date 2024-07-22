@@ -24,7 +24,6 @@ def send_welcome(message):
 
 # Metodo que configura el telado y mestra los tipos de uniades que se pueden convertir
 # =============================================================
-@bot.message_handler(content_types="text")
 def convertir_Keyboard(message):
     # Se configura el teclado para que muetre las opciones a convertir
     board = ReplyKeyboardMarkup(row_width= 2, resize_keyboard=True, one_time_keyboard=True)
@@ -39,17 +38,22 @@ def convertir_Keyboard(message):
 # ============================================================== 
  
 
-@bot.message_handler(content_types="text")    
+  
 def handle_converter(message):
     
      # Comprobar la elección del usuario y proceder con la función correspondiente
     if message.text == "Velocidad":
         bot.send_message(message.chat.id, "Escribe los kilometros a convertir")
-        bot.register_next_step_handler(message, convert_Speed)
+        bot.register_next_step_handler(message, convert_Speed(message))
         
     elif message.text == "Volumen":
-        # bot.send_message(message.chat.id, "Elige lo que quieres convertir")
-        bot.register_next_step_handler (message, convert_Volume_Keyboard(message))
+        for i in range(0,1):
+        #  bot.send_message(message.chat.id, "Elige lo que quieres convertir")
+         bot.register_next_step_handler (message, convert_Volume_Keyboard)
+         
+        
+    
+    
     elif message.text == "mlls/h a km/h":
         bot.send_message(
             message.chat.id, "Envía el texto del que deseas contar caracteres"
@@ -59,6 +63,7 @@ def handle_converter(message):
 
 
 def convert_Volume_Keyboard(message):
+    
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
@@ -68,9 +73,36 @@ def convert_Volume_Keyboard(message):
         KeyboardButton("Litro"),
         KeyboardButton("Decalitro"),
         KeyboardButton("Hectolitro"),
-        KeyboardButton("Kilolitro"),)   
-        
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+        KeyboardButton("Kilolitro"),) 
+      
+    cont = 0
+    if cont == 0:    
+        msg = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+        bot.register_next_step_handler (msg, convert_Volumen)
+        cont+= 1
+        cont1 = cont
+    
+    
+    elif cont1 == 1:
+        msg = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres llevar el resultado:", reply_markup=board)
+        bot.register_next_step_handler(msg, convert_Volumen)
+
+
+    
+ 
+def convert_Volumen(message):
+    pos = 0
+    # La variable volumen va a guardar el tipo de variable que se va a convertir
+    if pos == 0:
+        vol = message.text
+        bot.send_message(message.chat.id, f"vol = {vol}")
+        pos +=1
+    else:
+        vol1 = message.text
+        bot.send_message(message.chat.id, f"vol1 = {vol1}")
+    
+           
+    
 
 
 def convert_Speed(message):
