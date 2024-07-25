@@ -1,3 +1,4 @@
+
 from tkinter import TRUE
 from click import command, help_option
 from pyparsing import Token
@@ -10,9 +11,15 @@ from zmq import Message
 token =  "7289229933:AAGb2BqwtPj98ktIkbl6b3nKc3TyUeUSzaI"
 bot = tlb.TeleBot(token, parse_mode=None) 
 
+# Declaracion de las variables para almacenar los valores
+magnitudInicial = None
+magnitudFinal = None
+valor = None
+
 
 @bot.message_handler(commands=['start', 'help', 'description'])
 def send_welcome(message):
+    
     if message.text == '/start':
         bot.reply_to(message, "Que bola'\nAquí abajo tienes las opciones para convertir lo que quieras")
         convertir_Keyboard(message)
@@ -25,6 +32,7 @@ def send_welcome(message):
 # Metodo que configura el telado y mestra los tipos de uniades que se pueden convertir
 # =============================================================
 def convertir_Keyboard(message):
+    
     # Se configura el teclado para que muetre las opciones a convertir
     board = ReplyKeyboardMarkup(row_width= 2, resize_keyboard=True, one_time_keyboard=True)
     board.add(
@@ -43,16 +51,12 @@ def handle_converter(message):
     
      # Comprobar la elección del usuario y proceder con la función correspondiente
     if message.text == "Velocidad":
-        bot.send_message(message.chat.id, "Escribe los kilometros a convertir")
-        bot.register_next_step_handler(message, convert_Speed(message))
+        bot.register_next_step_handler(message, convert_Speed_Keyboard(message))
         
     elif message.text == "Volumen":
-        for i in range(0,1):
         #  bot.send_message(message.chat.id, "Elige lo que quieres convertir")
-         bot.register_next_step_handler (message, convert_Volume_Keyboard)
-         
-        
-    
+        bot.register_next_step_handler(message, convert_Volume_Keyboard)
+           
     
     elif message.text == "mlls/h a km/h":
         bot.send_message(
@@ -61,7 +65,69 @@ def handle_converter(message):
         # bot.register_next_step_handler(message, count_characters) 
     
 
+# Manejadores de VELOCIDAD
+# =============================================================================
+def convert_Speed_Keyboard(message):
+    
+    # Se configura el teclado para que muetre las opciones de Volumen a convertir
+    board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
+    board.add(
+        KeyboardButton("Metros/s"),
+        KeyboardButton("Kilometros/h"),
+        KeyboardButton("Millas/h")) 
+    
+    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    bot.register_next_step_handler (message, save_speed)
+    
+    
+    
+ 
+# Esta funcion guarda el tipo de agnitud que tenemos y queremos convertir   
+def save_speed(message):
+    
+    # VARIABLE ks, almacena el tipo de magnitud de VELOCIDAD
+    global magnitudInicial 
+    magnitudInicial = message.text
+    
+    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    bot.register_next_step_handler(message, save_speed_value)
 
+ 
+    
+def convert_Speed_Keyboard2(message):
+    
+    # Se configura el teclado para que muetre las opciones de Volumen a convertir
+    board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
+    board.add(
+        KeyboardButton("Metros/s"),
+        KeyboardButton("Kilometros/h"),
+        KeyboardButton("Millas/h")) 
+    
+    # msg = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board)
+    global magnitudFinal
+    magnitudFinal = message.text 
+    
+
+      
+
+
+
+# Esta funcion guarda el valor de la magnitud
+def save_speed_value(message):
+    # VARIABLE kms, almacena el valor cuantitativo de la magnitud
+    global valor
+    valor = float(message.text)
+    
+    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
+    bot.register_next_step_handler(msg, convert_Speed_Keyboard2)
+ 
+ 
+    
+
+    
+# ============================================================================= 
+    
+    
 def convert_Volume_Keyboard(message):
     
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
@@ -91,6 +157,7 @@ def convert_Volume_Keyboard(message):
     
  
 def convert_Volumen(message):
+    
     pos = 0
     # La variable volumen va a guardar el tipo de variable que se va a convertir
     if pos == 0:
@@ -105,10 +172,7 @@ def convert_Volumen(message):
     
 
 
-def convert_Speed(message):
-    kms = float(message.text)
-    millas = kms / 1.609
-    bot.send_message(message.chat.id, f"Son {round(millas, 4)} Millas/h") 
+
 
 
 bot.infinity_polling()
