@@ -1,10 +1,7 @@
-
-from tkinter import TRUE
-from click import command, help_option
-from pyparsing import Token
+import requests
 import telebot as tlb
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
-from zmq import Message
+from urllib3 import request
 
 
 # You can set parse_mode by default. HTML or MARKDOWN
@@ -29,6 +26,25 @@ def send_welcome(message):
 
 
 
+@bot.message_handler(commands=['dolar'])
+def send_welcome(message):
+    url_web = "https://eltoque.com/tasas-de-cambio-de-moneda-en-cuba-hoy#informal-diaria"
+    url_foto = "https://wa.cambiocuba.money/trmi.png"
+    url_foto_descargada = "https://github.com/Leyderhr/MultiConverterBot/blob/main/Imagen1.jpg"
+    mensaje = f'<a href="{url_foto_descargada}"> Presiona aqui para ver el valor real</a>\nPapa el dolar esta carísimo'
+    
+    
+    # Haciendo peticion al sitio web
+    resp = requests.get(url_foto)
+    resp.raise_for_status()
+
+    with open('Imagen1.jpg', 'wb') as imagen:
+        imagen.write(resp.content)
+        
+    bot.send_message(message.chat.id, mensaje, parse_mode= "html")
+
+    
+    
 # Metodo que configura el telado y mestra los tipos de uniades que se pueden convertir
 # =============================================================
 def convertir_Keyboard(message):
@@ -493,6 +509,8 @@ def convert_moneda_keyboard2(message):
 
 # FIN de los manejadores de MONEDA
 # =============================================================================
+
+
 
 
 bot.infinity_polling()
