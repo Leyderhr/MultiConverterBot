@@ -40,8 +40,11 @@ def send_welcome(message):
 
     with open('Imagen1.jpg', 'wb') as imagen:
         imagen.write(resp.content)
-        
-    bot.send_message(message.chat.id, mensaje, parse_mode= "html")
+    
+    # Enviando foto
+    img = open("Imagen1.jpg", "rb") 
+    bot.send_photo(message.chat.id, img)   
+ 
 
     
     
@@ -54,7 +57,7 @@ def convertir_Keyboard(message):
     board.add(
         KeyboardButton("Velocidad"), KeyboardButton("Volumen"),
         KeyboardButton("Longitud"), KeyboardButton("Peso y Masa"),
-        KeyboardButton("Temperatura"), KeyboardButton("Energía"),
+        KeyboardButton("Temperatura"),
         KeyboardButton("Área"), KeyboardButton("Moneda"))   
     
     bot.send_message(message.chat.id, "Elige qué quieres contar:", reply_markup=board)
