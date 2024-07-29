@@ -1,7 +1,7 @@
 import requests
 import telebot as tlb
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
-from urllib3 import request
+import assistant
 
 
 # You can set parse_mode by default. HTML or MARKDOWN
@@ -9,6 +9,14 @@ token =  "7289229933:AAGb2BqwtPj98ktIkbl6b3nKc3TyUeUSzaI"
 bot = tlb.TeleBot(token, parse_mode=None) 
 
 # Declaracion de las variables para almacenar los valores
+
+tipos_magnitud = {"kilometros/h" : 'kph', "metros/s" : 'mps', "millas/h" : 'mph', "mililitros" : 'ml',
+                  "centilitro" : 'cl', "decilitro" : 'dl', "litro" : 'l', "decalitro" : 'dal',
+                  "hectolitro" : 'hl', "kilolitro" : 'kl', "kilometros" : 'km', "metros" : 'm',
+                  "decimetros" : 'dm', "centimetros" : 'cm', "milimetros" : 'mm', "millas" : 'miles',
+                  "toneladas" : 't', "kilogramos" : 'kg', "gramos" : 'g', "miligramos" : 'mg',
+                  "libras" : 'lb', "grados Celsius" : '°C', "grados Fharenheit" : '°F', "grados Kelvin" : 'kelvin',
+                  "km²" : 'km', "m²" : 'm', "cm²" : 'cm'}
 magnitudInicial = None
 magnitudFinal = None
 valor = None
@@ -25,9 +33,8 @@ def send_welcome(message):
         bot.reply_to(message, "Aqui solo convertimos unidades.\nTambién tienes el comando /dolar para ver el precio del dolar actual")
 
 
-
 @bot.message_handler(commands=['dolar'])
-def send_welcome(message):
+def send_photo(message):
     url_web = "https://eltoque.com/tasas-de-cambio-de-moneda-en-cuba-hoy#informal-diaria"
     url_foto = "https://wa.cambiocuba.money/trmi.png"
     url_foto_descargada = "https://github.com/Leyderhr/MultiConverterBot/blob/main/Imagen1.jpg"
@@ -45,8 +52,6 @@ def send_welcome(message):
     img = open("Imagen1.jpg", "rb") 
     bot.send_photo(message.chat.id, img)   
  
-
-    
     
 # Metodo que configura el telado y mestra los tipos de uniades que se pueden convertir
 # =============================================================
@@ -57,14 +62,12 @@ def convertir_Keyboard(message):
     board.add(
         KeyboardButton("Velocidad"), KeyboardButton("Volumen"),
         KeyboardButton("Longitud"), KeyboardButton("Peso y Masa"),
-        KeyboardButton("Temperatura"),
-        KeyboardButton("Área"), KeyboardButton("Moneda"))   
+        KeyboardButton("Temperatura"), KeyboardButton("Área"))   
     
     bot.send_message(message.chat.id, "Elige qué quieres contar:", reply_markup=board)
     bot.register_next_step_handler(message, handle_converter)    
 # ============================================================== 
  
-
   
 def handle_converter(message):
     
@@ -87,10 +90,6 @@ def handle_converter(message):
     elif message.text == "Área":
         bot.register_next_step_handler(message, convert_area_keyboard(message))
     
-    elif message.text == "Moneda":
-        bot.register_next_step_handler(message, convert_moneda_keyboard(message))
-
-
 # Manejadores de VELOCIDAD
 # =============================================================================
 def convert_speed_keyboard(message):
@@ -98,26 +97,23 @@ def convert_speed_keyboard(message):
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Metros/s"),
-        KeyboardButton("Kilometros/h"),
-        KeyboardButton("Millas/h")) 
+        KeyboardButton("metros/s"),
+        KeyboardButton("kilometros/h"),
+        KeyboardButton("millas/h")) 
     
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_value_speed)
     
-    
-    
- 
+
 # Esta funcion guarda el tipo de magnitud que tenemos y queremos convertir   
 def save_value_speed(message):
     
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 1}
         
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_speed_value)
-
 
 
 # Esta funcion guarda el valor de la magnitud
@@ -126,31 +122,20 @@ def save_speed_value(message):
     # VARIABLE valor, almacena el valor cuantitativo de la magnitud
     global valor
     valor = float(message.text)
-    
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_speed_keyboard2)
 
- 
-    
-def convert_speed_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Metros/s"),
-        KeyboardButton("Kilometros/h"),
-        KeyboardButton("Millas/h")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
-    
+        KeyboardButton("metros/s"),
+        KeyboardButton("kilometros/h"),
+        KeyboardButton("millas/h")) 
+
+    message = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board)
+    bot.register_next_step_handler(message, show_result)
+   
     
 # Fin de las funciones manejadoras de VELOCIDAD 
 # ============================================================================= 
     
-
-
 
 # Manejadores de VOLUMEN
 # ============================================================================= 
@@ -159,17 +144,16 @@ def convert_volume_keyboard(message):
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Mililitros"),
-        KeyboardButton("Centilitro"),
-        KeyboardButton("Decilitro"),
-        KeyboardButton("Litro"),
-        KeyboardButton("Decalitro"),
-        KeyboardButton("Hectolitro"),
-        KeyboardButton("Kilolitro")) 
+        KeyboardButton("mililitros"),
+        KeyboardButton("centilitro"),
+        KeyboardButton("decilitro"),
+        KeyboardButton("litro"),
+        KeyboardButton("decalitro"),
+        KeyboardButton("hectolitro"),
+        KeyboardButton("kilolitro")) 
       
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_value_volumen)
-
 
 
 # Esta funcion guarda el tipo de magnitud que tenemos y queremos convertir   
@@ -177,12 +161,10 @@ def save_value_volumen(message):
    
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 1}
 
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_volumen_value)
-
-
 
 
 # Esta funcion guarda el valor de la magnitud
@@ -192,31 +174,22 @@ def save_volumen_value(message):
     global valor
     valor = float(message.text)
     
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_volumen_keyboard2)    
- 
-
-
-def convert_volumen_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Mililitros"),
-        KeyboardButton("Centilitro"),
-        KeyboardButton("Decilitro"),
-        KeyboardButton("Litro"),
-        KeyboardButton("Decalitro"),
-        KeyboardButton("Hectolitro"),
-        KeyboardButton("Kilolitro")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
+        KeyboardButton("mililitros"),
+        KeyboardButton("centilitro"),
+        KeyboardButton("decilitro"),
+        KeyboardButton("litro"),
+        KeyboardButton("decalitro"),
+        KeyboardButton("hectolitro"),
+        KeyboardButton("kilolitro")) 
+     
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    bot.register_next_step_handler(message, show_result)    
+ 
 
 # Fin de las funciones manejadoras de VOLUMEN
 # =============================================================================
-    
 
 
 # Manejadores de LONGITUD
@@ -226,16 +199,15 @@ def convert_longitud_keyboard(message):
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("km"),
-        KeyboardButton("m"),
-        KeyboardButton("dm"),
-        KeyboardButton("cm"),
-        KeyboardButton("Millas"),
-        KeyboardButton("mm")) 
+        KeyboardButton("kilometros"),
+        KeyboardButton("metros"),
+        KeyboardButton("decimetros"),
+        KeyboardButton("centimetros"),
+        KeyboardButton("millas"),
+        KeyboardButton("milimetros")) 
 
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_value_longitud)
-
 
 
 # Esta funcion guarda el tipo de magnitud que tenemos y queremos convertir   
@@ -243,11 +215,10 @@ def save_value_longitud(message):
    
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 1}
 
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_longitud_value)
-
 
 
 # Esta funcion guarda el valor de la magnitud
@@ -257,30 +228,21 @@ def save_longitud_value(message):
     global valor
     valor = float(message.text)
     
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_longitud_keyboard2)   
-
-
-
-def convert_longitud_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("km"),
-        KeyboardButton("m"),
-        KeyboardButton("dm"),
-        KeyboardButton("cm"),
-        KeyboardButton("Millas"),
-        KeyboardButton("mm")) 
+        KeyboardButton("kilometros"),
+        KeyboardButton("metros"),
+        KeyboardButton("decimetros"),
+        KeyboardButton("centimetros"),
+        KeyboardButton("millas"),
+        KeyboardButton("milimetros")) 
     
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
+    message = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board) 
+    bot.register_next_step_handler(message, show_result)   
+
 
 # Fin de los Manejadores de Longitud
 # =============================================================================
-
 
 
 # Manejadores de PESO Y MASA
@@ -293,9 +255,10 @@ def convert_masa_keyboard(message):
         KeyboardButton("toneladas"),
         KeyboardButton("kilogramos"),
         KeyboardButton("gramos"),
-        KeyboardButton("miligramos")) 
+        KeyboardButton("miligramos"),
+        KeyboardButton("libras")) 
 
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_value_masa)
 
 # Esta funcion guarda el tipo de magnitud que tenemos y queremos convertir   
@@ -303,11 +266,10 @@ def save_value_masa(message):
    
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 1}
 
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_masa_value)
-
 
 
 # Esta funcion guarda el valor de la magnitud
@@ -316,29 +278,21 @@ def save_masa_value(message):
     # VARIABLE valor, almacena el valor cuantitativo de la magnitud
     global valor
     valor = float(message.text)
-    
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_masa_keyboard2)   
 
-
-
-def convert_masa_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
         KeyboardButton("toneladas"),
         KeyboardButton("kilogramos"),
         KeyboardButton("gramos"),
-        KeyboardButton("miligramos")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
+        KeyboardButton("miligramos"),
+        KeyboardButton("libras")) 
+
+    message = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board)
+    bot.register_next_step_handler(message, show_result)   
+
 
 # FIN de los manejadores de PESO Y MASA
 # =============================================================================
-
 
 
 # Manejadores de TEMPERATURA
@@ -348,11 +302,11 @@ def convert_temperatura_keyboard(message):
     # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("Grados Celsius"),
-        KeyboardButton("Grados Fharenheit"),
-        KeyboardButton("Grados Kelvin")) 
+        KeyboardButton("grados Celsius"),
+        KeyboardButton("grados Fharenheit"),
+        KeyboardButton("grados Kelvin")) 
 
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_temperatura_value)
 
 
@@ -361,9 +315,9 @@ def save_temperatura_value(message):
    
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 1}
 
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_value_temperatura)
 
 
@@ -375,24 +329,15 @@ def save_value_temperatura(message):
     global valor
     valor = float(message.text)
     
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_temperatura_keyboard2)   
-
-
-
-def convert_temperatura_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
-        KeyboardButton("toneladas"),
-        KeyboardButton("kilogramos"),
-        KeyboardButton("gramos"),
-        KeyboardButton("miligramos")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
+        KeyboardButton("grados Celsius"),
+        KeyboardButton("grados Fharenheit"),
+        KeyboardButton("grados Kelvin")) 
+
+    message = bot.send_message(message.chat.id, "Elige la magnitud a la que quieres convertir:", reply_markup=board)    
+    bot.register_next_step_handler(message, show_result)   
+
 
 # FIN de los manejadores de TEMPERATURA
 # =============================================================================
@@ -409,7 +354,7 @@ def convert_area_keyboard(message):
         KeyboardButton("m²"),
         KeyboardButton("cm²")) 
 
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
     bot.register_next_step_handler (message, save_area_value)
 
 
@@ -418,11 +363,10 @@ def save_area_value(message):
    
     # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
     global magnitudInicial
-    magnitudInicial = message.text
+    magnitudInicial = {"magnitud" : tipos_magnitud[message.text], "elevada" : 2}
 
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
+    message = bot.send_message(message.chat.id, "Escribe el valor a convertir")
     bot.register_next_step_handler(message, save_value_area)
-
 
 
 # Esta funcion guarda el valor de la magnitud
@@ -430,90 +374,33 @@ def save_value_area(message):
     
     # VARIABLE valor, almacena el valor cuantitativo de la magnitud
     global valor
-    valor = float(message.text)
-    
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_area_keyboard2)   
+    valor = float(message.text)  
 
-
-
-def convert_area_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
     board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
     board.add(
         KeyboardButton("km²"),
         KeyboardButton("m²"),
         KeyboardButton("cm²")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
+
+    message = bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
+    bot.register_next_step_handler(message, show_result)   
+
 
 # FIN de los manejadores de AREA
 # =============================================================================
 
 
-
-
-# Manejadores de MONEDA
+# Funciones auxiliares
 # =============================================================================
-def convert_moneda_keyboard(message):
+def show_result(message) :
+    global magnitudFinal, magnitudInicial, valor
+    magnitudFinal = {"magnitud" : tipos_magnitud[message.text], "elevada" : magnitudInicial["elevada"]}
+    result1, result2 = assistant.transformacion_Magnitud(magnitudInicial, magnitudFinal, valor)
+    bot.send_message(message.chat.id, assistant.translate_string(result1, result2))
+    reset_global_var()
     
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
-    board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
-    board.add(
-        KeyboardButton("CUP"),
-        KeyboardButton("USD"),
-        KeyboardButton("EUR"),
-        KeyboardButton("MLC")) 
-
-    bot.send_message(message.chat.id, "Elige la magnitud que quieres convertir:", reply_markup=board)
-    bot.register_next_step_handler (message, save_moneda_value)
-
-
-# Esta funcion guarda el tipo de magnitud que tenemos y queremos convertir   
-def save_moneda_value(message):
-   
-    # VARIABLE magnitudInicial, almacena el tipo de magnitud de VELOCIDAD
-    global magnitudInicial
-    magnitudInicial = message.text
-
-    bot.send_message(message.chat.id, "Escribe el valor a convertir")
-    bot.register_next_step_handler(message, save_value_moneda)
-
-
-
-# Esta funcion guarda el valor de la magnitud
-def save_value_moneda(message):
+def reset_global_var() :
+    global magnitudInicial, magnitudFinal, valor
+    magnitudInicial = magnitudFinal = valor = None
     
-    # VARIABLE valor, almacena el valor cuantitativo de la magnitud
-    global valor
-    valor = float(message.text)
-    
-    msg = bot.send_message(message.chat.id, "Escribe la otra magnitud a convertir")
-    bot.register_next_step_handler(msg, convert_area_keyboard2)   
-
-
-
-def convert_moneda_keyboard2(message):
-    
-    # Se configura el teclado para que muetre las opciones de Volumen a convertir
-    board = ReplyKeyboardMarkup(row_width= 1, resize_keyboard=True, one_time_keyboard=True)
-    board.add(
-        KeyboardButton("CUP"),
-        KeyboardButton("USD"),
-        KeyboardButton("EUR"),
-        KeyboardButton("MLC")) 
-    
-    
-    global magnitudFinal
-    magnitudFinal = message.text 
-
-# FIN de los manejadores de MONEDA
-# =============================================================================
-
-
-
-
 bot.infinity_polling()
