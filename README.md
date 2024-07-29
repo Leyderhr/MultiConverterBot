@@ -1,7 +1,7 @@
 # MultiConverterBot
 Este Bot fue creado por 3 alumnos de Ingeniería Informática 🐳de la Cujae (Cuba)  como proyecto de la optativa Python.
 
-Te puede ayudar a convertir todo tipo de unidades, ya sean de volumen, distancia, presión e incluso monetarias, y sí, también te dice a cuánto ElToque tiene dólar hoy😉
+Te puede ayudar a convertir todo tipo de unidades, ya sean de volumen, distancia, presión y también te dice a cuánto ElToque tiene dólar hoy!!!!😉
 
 Para programar el bot se utilizó la librería [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot.git) como base principal para crear todos los 
 manejadores de mensajes y los teclados que aparecen en el bot. Lamentablemene aún no esta subido a un servicio de cloud por lo que sólo funciona si te descargas el código
